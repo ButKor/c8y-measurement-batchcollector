@@ -22,7 +22,7 @@ The implementation is based on two concepts:
 1) Use the ˙/measurement/measurements?pageSize=1&withTotalPages=true˚ endpoint parameters to count the number of measurements for a certain time span **before** actually fetching them
 2) Divide the time span recursively as long as the "measurement per time span" are fitting in the allowed chunk-size (input parameter). A binary tree is used as data structure:
 
-![Binary Tree Sample](/resources/imgs/binaryTree_sample.png)
+![Binary Tree Sample](/resources/imgs/binaryTree_sample_d.png)
 
 # Sample Output
 
