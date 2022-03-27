@@ -1,0 +1,11 @@
+collector/recordset/MeasurementChunkDescription.class
+collector/C8yHttpClient.class
+collector/util/DateUtil.class
+collector/MeasurementProcessor.class
+collector/ChunkCollector.class
+collector/util/Tuple.class
+collector/Main.class
+collector/recordset/ChunkResultSet.class
+collector/util/StringUtil.class
+collector/CollectorConfig.class
+collector/util/MyTimespan.class
