@@ -10,7 +10,7 @@ public class Main {
 
     private final String baseUrl = "https://example.cumulocity.com";
     private final String user = "t12345/myuser";
-    private final String pass = "";
+    private final String pass = "mysecretpass";
 
     private final String dateFrom = "2021-01-01T00:00:00.000Z";
     private final String dateTo = "2022-04-01T00:00:00.0000Z";
