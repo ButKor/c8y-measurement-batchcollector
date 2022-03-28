@@ -4,6 +4,7 @@ import collector.recordset.ChunkResultSet;
 import collector.recordset.MeasurementChunkDescription;
 import collector.util.DateUtil;
 import collector.util.TimeSpan;
+import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.time.StopWatch;
 import org.javatuples.Pair;
 
@@ -12,13 +13,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+@AllArgsConstructor
 public class ChunkCollector {
 
     private final C8yHttpClient client;
-
-    public ChunkCollector(C8yHttpClient client) {
-        this.client = client;
-    }
 
     public Pair<ChunkResultSet, StopWatch> collectWithClock(ChunkCollectorConfig collectorCfg) {
         StopWatch watch = StopWatch.createStarted();
@@ -30,11 +28,9 @@ public class ChunkCollector {
     public ChunkResultSet collect(ChunkCollectorConfig collectorCfg) {
         ChunkResultSet resultSet = new ChunkResultSet(collectorCfg);
         resultSet.registerRunStart(Instant.now());
-
         resultSet.addMeasurementChunkDescriptions(
                 collectChunks(collectorCfg.getDateFrom(), collectorCfg.getDateTo(), collectorCfg.getOid(), collectorCfg.getChunkSize(), resultSet)
         );
-
         resultSet.registerRunFinish(Instant.now());
         return resultSet;
     }

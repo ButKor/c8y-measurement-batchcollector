@@ -16,7 +16,7 @@ public class Main {
     private final String dateTo = "2022-04-01T00:00:00.0000Z";
     private final String oid = "100200";
 
-    private final int chunkSize = 1000;
+    private final int chunkSize = 49999;
 
     public static void main(String[] args) {
         new Main().run();

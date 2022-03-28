@@ -43,6 +43,10 @@ public class DateUtil {
         return divideTimesByTwo(instDateFrom, instDateTo);
     }
 
+    public static Pair<TimeSpan, TimeSpan> divideTimesByTwo(TimeSpan span){
+        return divideTimesByTwo(span.getDateFrom(), span.getDateTo());
+    }
+
     public static Pair<TimeSpan, TimeSpan> divideTimesByTwo(Instant dateFrom, Instant dateTo){
         Instant dateALower = dateFrom;
         Instant dateAUpper = dateFrom.plusMillis(ChronoUnit.MILLIS.between(dateFrom, dateTo) / 2);
