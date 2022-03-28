@@ -9,7 +9,7 @@ import java.time.temporal.ChronoUnit;
 public class ConsoleChunkResultDescriptor {
 
     private static final ConsoleChunkResultDescriptor instance = new ConsoleChunkResultDescriptor();
-    private final DecimalFormat formatter = new DecimalFormat("#,###");
+    private final DecimalFormat numberFormatter = new DecimalFormat("#,###");
 
     public static ConsoleChunkResultDescriptor instance() {
         return instance;
@@ -21,12 +21,11 @@ public class ConsoleChunkResultDescriptor {
 
     public String describe(ChunkResultSet resultSet, boolean includeChunks) {
         StringBuilder sb = new StringBuilder();
-        sb.append("*** Measurement Chunk result set ***").append(System.lineSeparator());
+        sb.append(System.lineSeparator()).append("*** Measurement Chunk result set ***").append(System.lineSeparator());
         sb.append(describeInputConfig(resultSet)).append(System.lineSeparator());
         sb.append(describeRuntime(resultSet)).append(System.lineSeparator());
         sb.append(describeResultOverview(resultSet)).append(System.lineSeparator());
         if (includeChunks) {
-            sb.append(System.lineSeparator());
             sb.append(describeChunkSet(resultSet));
         }
 
@@ -41,7 +40,7 @@ public class ConsoleChunkResultDescriptor {
                 .append(System.lineSeparator());
         sb.append(String.format("%-15s %s", "end:", DateUtil.getFormattedUtcString(resultSet.getRunningTime().getDateTo())))
                 .append(System.lineSeparator());
-        sb.append(String.format("%-15s %s ms", "duration:", formatter.format(resultSet.getRunningTime().between(ChronoUnit.MILLIS))))
+        sb.append(String.format("%-15s %s ms", "duration:", numberFormatter.format(resultSet.getRunningTime().between(ChronoUnit.MILLIS))))
                 .append(System.lineSeparator());
         return sb.toString();
     }
@@ -56,7 +55,7 @@ public class ConsoleChunkResultDescriptor {
                 .append(System.lineSeparator());
         sb.append(String.format("%-15s \"%s\"", "deviceId:", resultSet.getCollectorCfg().getOid()))
                 .append(System.lineSeparator());
-        sb.append(String.format("%-15s %s", "chunkSize:", formatter.format(resultSet.getCollectorCfg().getChunkSize())))
+        sb.append(String.format("%-15s %s", "chunkSize:", numberFormatter.format(resultSet.getCollectorCfg().getChunkSize())))
                 .append(System.lineSeparator());
         return sb.toString();
     }
@@ -72,7 +71,7 @@ public class ConsoleChunkResultDescriptor {
                         String.format("%-35s   %-35s   %20s" + System.lineSeparator(),
                                 DateUtil.getFormattedUtcString(d.getTimespan().getDateFrom()),
                                 DateUtil.getFormattedUtcString(d.getTimespan().getDateTo()),
-                                formatter.format(d.getCountMeasurements())
+                                numberFormatter.format(d.getCountMeasurements())
                         )
                 )
         );
@@ -84,16 +83,16 @@ public class ConsoleChunkResultDescriptor {
         sb.append("Results Overview:").append(System.lineSeparator());
         sb.append("-".repeat(60)).append(System.lineSeparator());
         sb.append(String.format("%-35s %s", "Count Measurements (total):",
-                        formatter.format(
+                        numberFormatter.format(
                                 resultSet.getRecords().stream()
                                         .map(MeasurementChunkDescription::getCountMeasurements)
                                         .reduce(Integer::sum)
                                         .orElse(null))
                 )
         ).append(System.lineSeparator());
-        sb.append(String.format("%-35s %s", "Count Chunks (total):", formatter.format(resultSet.getRecords().size()))).append(System.lineSeparator());
+        sb.append(String.format("%-35s %s", "Count Chunks (total):", numberFormatter.format(resultSet.getRecords().size()))).append(System.lineSeparator());
         sb.append(String.format("%-35s %s", "Count Chunks (total, no null):",
-                        formatter.format(
+                        numberFormatter.format(
                                 resultSet.getRecords().stream()
                                         .map(MeasurementChunkDescription::getCountMeasurements)
                                         .filter(l -> l > 0)
@@ -102,7 +101,7 @@ public class ConsoleChunkResultDescriptor {
         ).append(System.lineSeparator());
         sb.append(String.format("%-35s %s", "Count exec. data splits (total):", resultSet.getCtDataSplits())).append(System.lineSeparator());
         sb.append(String.format("%-35s %s", "Chunk size (max):",
-                        formatter.format(
+                        numberFormatter.format(
                                 resultSet.getRecords().stream()
                                         .map(MeasurementChunkDescription::getCountMeasurements)
                                         .reduce(Integer::max)
@@ -110,14 +109,14 @@ public class ConsoleChunkResultDescriptor {
                 )
         ).append(System.lineSeparator());
         sb.append(String.format("%-35s %s", "Chunk size (min, no null):",
-                        formatter.format(
+                        numberFormatter.format(
                                 resultSet.getRecords().stream()
                                         .map(MeasurementChunkDescription::getCountMeasurements)
                                         .filter(l -> l > 0)
                                         .reduce(Integer::min)
                                         .orElse(null))
                 )
-        ).append(System.lineSeparator());
+        );
         return sb.toString();
     }
 }

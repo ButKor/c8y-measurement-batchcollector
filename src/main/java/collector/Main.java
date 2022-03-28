@@ -3,6 +3,8 @@ package collector;
 import collector.recordset.ChunkResultSet;
 import collector.recordset.ConsoleChunkResultDescriptor;
 import collector.util.DateUtil;
+import org.apache.commons.lang3.time.StopWatch;
+import org.javatuples.Pair;
 
 public class Main {
 
@@ -33,7 +35,8 @@ public class Main {
          *
          * */
         ChunkCollector collector = new ChunkCollector(client);
-        ChunkResultSet resultSet = collector.collect(
+        System.out.print("Build request-chunks .... ");
+        Pair<ChunkResultSet, StopWatch> chunkResult = collector.collectWithClock(
                 ChunkCollectorConfig.builder()
                         .dateFrom(DateUtil.getDateTime(dateFrom))
                         .dateTo(DateUtil.getDateTime(dateTo))
@@ -41,8 +44,9 @@ public class Main {
                         .chunkSize(chunkSize)
                         .build()
         );
+        System.out.printf(" => Elapsed time: %s" + System.lineSeparator(), chunkResult.getValue1().formatTime());
 
-        ConsoleChunkResultDescriptor.instance().print(resultSet, true);
+        ConsoleChunkResultDescriptor.instance().print(chunkResult.getValue0(), true);
 
         /*
          *   Run over all chunks, collect their (CSV-) Measurements and dump to File
@@ -50,7 +54,9 @@ public class Main {
          *        a) already sorted ascending by time and
          *        b) have no time overlaps (thus should not have duplicates)
          * */
-        new MeasurementProcessor().run(resultSet);
+        System.out.print("Request measurements and dump to file....");
+        Pair<Boolean, StopWatch> processResult = new CsvMeasurementsToFileProcessors(client).runWithClock(chunkResult.getValue0(), "./measurements.txt");
+        System.out.printf(" => Elapsed time: %s" + System.lineSeparator(), processResult.getValue1().formatTime());
     }
 
 }

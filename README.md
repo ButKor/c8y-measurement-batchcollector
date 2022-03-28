@@ -15,18 +15,30 @@ It is accepting as input:
 * with non-colliding time spans (thus no duplicates)
 * with each chunk having less than the allowed measurements per chunk
 
-# Concept
+# Logic
 
-The implementation is based on two concepts:
+The implementation executes below steps:
 
 1) Use the ˙/measurement/measurements?pageSize=1&withTotalPages=true˚ endpoint parameters to count the number of measurements for a certain time span **before** actually fetching them
 2) Divide the time span recursively as long as the "measurement per time span" are fitting in the allowed chunk-size (input parameter). A binary tree is used as data structure:
 
-![Binary Tree Sample](/resources/imgs/binaryTree_sample_d.png)
+![Binary Tree Sample](/resources/imgs/binaryTree_readme.png)
+
+3) Request and dump all measurements of all chunks sequentially. Result will be a CSV:
+
+```csv
+time,source,device_name,fragment.series,value,unit
+2022-03-09T21:38:14.568+01:00,100200,test,c8y_Winding.temperature,1.2345,°C
+2022-03-11T09:28:18.588+01:00,100200,test,f.s,1.2345,°C
+2022-03-11T09:28:28.132+01:00,100200,test,f.s,95,°C
+022-03-26T13:06:34.452+01:00,100200,test,f.s,95,°C
+2022-03-26T13:06:38.194+01:00,100200,test,f.s,95,°C
+etc.
+```
 
 # Sample Output
 
-Output using a chunk size o 100,00 on a measurement collection of 611,210 Measurements:
+Output using a chunk size o 100,000 on a measurement collection of 611,210 Measurements:
 ```
 *** Measurement Chunk result set ***
 Configuration:

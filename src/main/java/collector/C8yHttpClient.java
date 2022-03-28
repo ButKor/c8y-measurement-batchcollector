@@ -22,6 +22,33 @@ public class C8yHttpClient {
         this.base64Auth = basicAuth(user, pass);
     }
 
+    public Optional<String> fetchCsvMeasurements(String dateFrom, String dateTo, String oid) {
+        URI uri = URI.create(String.format("%s/measurement/measurements?pageSize=1&withTotalPages=true%s%s%s",
+                baseUrl,
+                StringUtils.isNoneEmpty(dateFrom) ? "&dateFrom=" + dateFrom : "",
+                StringUtils.isNoneEmpty(dateTo) ? "&dateTo=" + dateTo : "",
+                StringUtils.isNoneEmpty(oid) ? "&source=" + oid : ""));
+
+        try {
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(uri)
+                    .header("Authorization", base64Auth)
+                    .header("Accept", "text/csv")
+                    .method("GET", HttpRequest.BodyPublishers.noBody())
+                    .build();
+            HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+            if(response == null || response.statusCode() != 200 || StringUtils.isEmpty(response.body())){
+                return Optional.empty();
+            }
+            return Optional.of(response.body());
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        return Optional.empty();
+    }
+
 
     public Optional<Integer> fetchNumberOfMeasurements(String dateFrom, String dateTo, String oid) {
         URI uri = URI.create(String.format("%s/measurement/measurements?pageSize=1&withTotalPages=true%s%s%s",
