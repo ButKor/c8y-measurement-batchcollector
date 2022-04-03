@@ -15,6 +15,8 @@ It is accepting as input:
 * with non-colliding time spans (thus no duplicates)
 * with each chunk having less than the allowed measurements per chunk
 
+Once existing, the project is fetching all measurements for each chunk and appends them together in a single CSV file.
+
 # Logic
 
 The implementation executes below steps:
