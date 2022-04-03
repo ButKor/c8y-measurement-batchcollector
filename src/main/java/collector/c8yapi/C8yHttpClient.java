@@ -189,33 +189,81 @@ public class C8yHttpClient {
         return response;
     }
 
-    public Optional<ManagedObjectRepresentation> bootstrap(String externalIdKey, String externalId, String type, String name) {
+    public Optional<ManagedObjectRepresentation> bootstrap(String externalIdKey, String externalIdValue, String type, String name) {
         try {
-            ExternalIDRepresentation xid = platform.getIdentityApi().getExternalId(new ID(externalIdKey, externalId));
+            Preconditions.checkArgument(StringUtils.isNoneEmpty(externalIdKey), "ExternalIdKey not allowed being null or empty");
+            Preconditions.checkArgument(StringUtils.isNoneEmpty(externalIdValue), "ExternalIdValue not allowed being null or empty");
+            Preconditions.checkArgument(StringUtils.isNoneEmpty(type), "Type not allowed being null or empty");
+            Preconditions.checkArgument(StringUtils.isNoneEmpty(name), "Name not allowed being null or empty");
+
+            ExternalIDRepresentation xid = platform.getIdentityApi().getExternalId(new ID(externalIdKey, externalIdValue));
             ManagedObjectRepresentation mo = xid.getManagedObject();
-            log.debug("Found Managed Object for externalIdKey = {} and externalIdValue = {}", externalIdKey, externalId);
+            log.debug("Found Managed Object for externalIdKey = {} and externalIdValue = {}", externalIdKey, externalIdValue);
             return Optional.of(mo);
         } catch (SDKException e) {
             if (e.getHttpStatus() == 404) {
-                log.debug("Did not find Managed Object for externalIdKey = {} and externalIdValue = {} => Creating it.", externalIdKey, externalId);
-                ManagedObjectRepresentation device = new ManagedObjectRepresentation();
-                device.setType(type);
-                device.setProperty("c8y_IsDevice", new Object());
-                device.setName(name);
-                device = platform.getInventoryApi().create(device);
-                log.debug("Created platform device while bootstrapping device: {}", device);
+                log.debug("Did not find Managed Object for externalIdKey = {} and externalIdValue = {} => Creating it.", externalIdKey, externalIdValue);
 
-                ExternalIDRepresentation xid = new ExternalIDRepresentation();
-                xid.setType(externalIdKey);
-                xid.setExternalId(externalId);
-                xid.setManagedObject(device);
-                platform.getIdentityApi().create(xid);
-                log.debug("Created externalID for device {}: {}", device.getId().getValue(), xid);
+                Optional<ManagedObjectRepresentation> device = getManagedObjectRepresentation(type, name, true);
+                if(device.isEmpty()){
+                    // TODO: issue, take care
+                }
+                Optional<ExternalIDRepresentation> xid = registerExternalId(externalIdKey, externalIdValue, device.get());
+                if(xid.isEmpty()){
+                    // TODO: issue, take care
+                }
 
-                return Optional.of(device);
+                return Optional.of(device.get());
             }
+            // TODO: other issues, take care
+        } catch (IllegalArgumentException e) {
+            log.error("Illegal Argument passed to send a platform event. Details: {}", e.getMessage());
         }
         log.debug("Device Bootstrapping run in an unexpected issue, returning an empty Optional...");
+        return Optional.empty();
+    }
+
+    private Optional<ManagedObjectRepresentation> getManagedObjectRepresentation(String type, String name, boolean isDevice) {
+        try {
+            ManagedObjectRepresentation device = new ManagedObjectRepresentation();
+            device.setType(type);
+            if (isDevice) {
+                device.setProperty("c8y_IsDevice", new Object());
+            }
+            device.setName(name);
+            device = platform.getInventoryApi().create(device);
+            log.debug("Created platform device: {}", device);
+            return Optional.of(device);
+        } catch (IllegalArgumentException e) {
+            log.error("Illegal Argument passed to create a Managed Object. Details: {}", e.getMessage());
+        } catch (SDKException e) {
+            log.error("Error while creating a Managed Object. Details: " + System.lineSeparator() + "{}",
+                    C8yApiUtil.createErrorDescription("Error while creating platform device in Cumulocity", e));
+        }
+        log.debug("Create Managed Object in an unexpected issue, returning an empty Optional...");
+        return Optional.empty();
+    }
+
+    private Optional<ExternalIDRepresentation> registerExternalId(String externalIdKey, String externalIdValue, ManagedObjectRepresentation device) {
+        try {
+            Preconditions.checkArgument(StringUtils.isNoneEmpty(externalIdKey), "ExternalIDKey not allowed being null or empty");
+            Preconditions.checkArgument(StringUtils.isNoneEmpty(externalIdValue), "ExternalIdValue not allowed being null or empty");
+            Preconditions.checkArgument(device != null, "Device not allowed being null");
+
+            ExternalIDRepresentation xid = new ExternalIDRepresentation();
+            xid.setType(externalIdKey);
+            xid.setExternalId(externalIdValue);
+            xid.setManagedObject(device);
+            ExternalIDRepresentation res = platform.getIdentityApi().create(xid);
+            log.debug("Created externalID for device {}: {}", device.getId().getValue(), res);
+            return Optional.of(res);
+        } catch (IllegalArgumentException e) {
+            log.error("Illegal Argument passed to register external id to platform. Details: {}", e.getMessage());
+        } catch (SDKException e) {
+            log.error("Error while registering externalID to Cumulocity. Details: " + System.lineSeparator() + "{}",
+                    C8yApiUtil.createErrorDescription("Error while registering externalID to Cumulocity", e));
+        }
+        log.debug("Register external id ran in in unexpected state, returning empty Optional");
         return Optional.empty();
     }
 
