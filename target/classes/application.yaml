@@ -4,18 +4,15 @@ platform:
   baseUrl: "https://kobu.latest.stage.c8y.io"
   user: "t1304891/korbinian.butz@softwareag.com"
   pass: "m63e@V*@yHDr_PEJ36"
-
 serviceC8yDevice:
   activate: true
-  type: "exportService"
-  name: "exportService"
-  externalIdKey: "c8y_Serial"
-  externalIdValue: "exportService"
-
+  type: exportService
+  name: exportService
+  externalIdKey: c8y_Serial
+  externalIdValue: exportService
 request:
-  dateFrom: "2022-03-21T20:00:00.000Z"
-  dateTo: "2022-03-25T20:00:00.000Z"
-  source: "407401764"
+  dateFrom: '2021-01-01T00:00:00.000Z'
+  dateTo: '2022-04-01T00:00:00.000Z'
+  source: '100200'
   chunkSize: 1000
-
-outputFile: "./measurements.csv"
+outputFile: ./measurements.csv

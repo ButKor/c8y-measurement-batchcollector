@@ -1,5 +1,6 @@
 package collector.runtime;
 
+import collector.c8yapi.C8yApiUtil;
 import collector.c8yapi.C8yHttpCallException;
 import collector.c8yapi.C8yHttpClient;
 import collector.recordset.ChunkResultSet;
@@ -69,7 +70,8 @@ public class CsvMeasurementsToFileProcessors {
                     isWrittenOnce = true;
                 } catch (C8yHttpCallException e) {
                     log.error("Error occurred while fetching CSV Measurements from Cumulocity " +
-                            "- Runtime will jump over this chunk. Error details: " + System.lineSeparator() + "{}", e.prettify());
+                            "- Runtime will jump over this chunk. Error details: " + System.lineSeparator() + "{}",
+                            C8yApiUtil.createErrorDescription(e));
                 }
             }
             fileWriter.flush();

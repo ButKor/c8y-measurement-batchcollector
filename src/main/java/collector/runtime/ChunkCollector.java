@@ -1,5 +1,6 @@
 package collector.runtime;
 
+import collector.c8yapi.C8yApiUtil;
 import collector.c8yapi.C8yHttpCallException;
 import collector.c8yapi.C8yHttpClient;
 import collector.recordset.ChunkResultSet;
@@ -55,7 +56,7 @@ public class ChunkCollector {
                 lst.add(d);
             }
         } catch (C8yHttpCallException e) {
-            log.error("Critical error while collecting Chunks occurred. Error details: \n{}", e.prettify());
+            log.error("Critical error while collecting Chunks occurred. Error details: \n{}", C8yApiUtil.createErrorDescription(e));
             return new ArrayList<>();
         }
         return lst;
