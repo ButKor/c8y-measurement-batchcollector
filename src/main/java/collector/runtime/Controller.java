@@ -36,7 +36,8 @@ public class Controller implements IRuntimeObservable {
         if(serviceDeviceConfig.activate()){
             Optional<ManagedObjectRepresentation> device = client.bootstrap(serviceDeviceConfig.externalIdKey(),
                     serviceDeviceConfig.externalIdValue(), serviceDeviceConfig.type(), serviceDeviceConfig.name());
-            device.ifPresent(managedObjectRepresentation -> registerObserver(new RuntimeDeviceObserver(managedObjectRepresentation, client)));
+            new RuntimeDeviceObserver(device.get(), client);
+            device.ifPresent(managedObjectRepresentation -> registerObserver(new RuntimeDeviceObserver(device.get(), client)));
         }
         observers.forEach(IRuntimeObserver::runtimeStarted);
 
