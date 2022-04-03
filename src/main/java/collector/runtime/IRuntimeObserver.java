@@ -1,7 +1,5 @@
 package collector.runtime;
 
-import collector.recordset.ChunkResultSet;
-import generic.C8yServiceDevice;
 import org.apache.commons.lang3.time.StopWatch;
 import org.javatuples.Pair;
 

@@ -1,5 +1,7 @@
-package collector;
+package collector.runtime;
 
+import collector.c8yapi.C8yHttpCallException;
+import collector.c8yapi.C8yHttpClient;
 import collector.recordset.ChunkResultSet;
 import collector.recordset.MeasurementChunkDescription;
 import collector.util.DateUtil;

@@ -6,7 +6,7 @@ platform:
   pass: "m63e@V*@yHDr_PEJ36"
 
 serviceC8yDevice:
-  activate: false
+  activate: true
   type: "exportService"
   name: "exportService"
   externalIdKey: "c8y_Serial"
