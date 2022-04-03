@@ -154,8 +154,9 @@ Above sample device is sending less constant data -> that's why there are chunks
 # Projects Libraries in use
 
 * [CFG4J](http://www.cfg4j.org/): Application Configuration library
-* [Logback](https://logback.qos.ch/): The SLF4J Logging library in use
-* [Dropwizard Metrics](https://metrics.dropwizard.io/4.2.0/): used to monitor the application
+* [Logback](https://logback.qos.ch/): An SLF4J Logging library
 * [Lombok](https://projectlombok.org/): A library used to reduce boilerplate code for model/data objects
+* [Dropwizard Metrics](https://metrics.dropwizard.io/4.2.0/): used to monitor the application
 * [ctongfei/progressbar](https://github.com/ctongfei/progressbar): A console progressbar library
+* [freva/asciitable](https://github.com/freva/ascii-table): An ascii table generator
 * Other helpers such as Apache-Commons, Guava and Javatuples
