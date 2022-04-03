@@ -19,6 +19,7 @@ public class Main {
     public void run() {
         log.info("Application started");
 
+        // config located in src/main/resources (should be on default, but make sure its part of your classpath)
         IPlatformConfig platformConfig = Configuration.configurationProvider().bind("platform", IPlatformConfig.class);
         IRequestConfig requestConfig = Configuration.configurationProvider().bind("request", IRequestConfig.class);
         String outputFilePath = Configuration.configurationProvider().getProperty("outputFile", String.class);
