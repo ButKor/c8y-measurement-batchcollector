@@ -1,13 +1,19 @@
 package collector.runtime;
 
 import collector.c8yapi.C8yHttpClient;
+import com.cumulocity.rest.representation.alarm.AlarmRepresentation;
+import com.cumulocity.rest.representation.event.EventRepresentation;
 import com.cumulocity.rest.representation.inventory.ManagedObjectRepresentation;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.StopWatch;
 import org.javatuples.Pair;
 import org.joda.time.DateTime;
 
+import java.util.Optional;
+
 @Getter
+@Slf4j
 public class RuntimeDeviceObserver implements IRuntimeObserver {
 
     private final ManagedObjectRepresentation device;
@@ -19,23 +25,29 @@ public class RuntimeDeviceObserver implements IRuntimeObserver {
     }
 
     public void runtimeStarted() {
-        client.sendEvent(device.getId().getValue(), "runtimeStateChanged", "Runtime started", new DateTime());
+        Optional<EventRepresentation> event = client.sendEvent(device.getId().getValue(),
+                "runtimeStateChanged", "Runtime started", new DateTime());
+        log.info("Created Platform event to audit runtime start: {}", event.orElse(null));
     }
 
     @Override
     public void fileWritten(Pair<Boolean, StopWatch> processResult, String outputFilePath) {
         if (processResult.getValue0()) {
-            client.sendEvent(device.getId().getValue(), "fileExported",
+            Optional<EventRepresentation> event = client.sendEvent(device.getId().getValue(), "fileExported",
                     String.format("Created file %s", outputFilePath), new DateTime());
+            log.info("Created Platform event to audit fileWrite-Action: {}", event.orElse(null));
         } else {
-            client.sendAlarm(device.getId().getValue(), "fileExport",
+            Optional<AlarmRepresentation> alarm = client.sendAlarm(device.getId().getValue(), "fileExport",
                     String.format("File could not be written to %s", outputFilePath), "MAJOR", new DateTime());
+            log.warn("Created Platform alarm to audit fileWrite-Action: {}", alarm.orElse(null));
         }
     }
 
     @Override
     public void runtimeFinished() {
-        client.sendEvent(device.getId().getValue(), "runtimeStateChanged", "Runtime finished", new DateTime());
+        Optional<EventRepresentation> event = client.sendEvent(device.getId().getValue(),
+                "runtimeStateChanged", "Runtime finished", new DateTime());
+        log.info("Created Platform event to audit runtime start: {}", event.orElse(null));
     }
 
 }

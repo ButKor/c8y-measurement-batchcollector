@@ -108,8 +108,12 @@ public class C8yHttpClient {
     }
 
     @SafeVarargs
-    public final void sendEvent(String deviceId, String type, String text, DateTime time, Pair<String, Object>... fragments) {
-        try{
+    public final Optional<EventRepresentation> sendEvent(String deviceId, String type, String text, DateTime time, Pair<String, Object>... fragments) {
+        try {
+            Preconditions.checkArgument(StringUtils.isNoneEmpty(deviceId), "Device ID not allowed being null or empty");
+            Preconditions.checkArgument(StringUtils.isNoneEmpty(type), "Type not allowed being null or empty");
+            Preconditions.checkArgument(StringUtils.isNoneEmpty(text), "Text not allowed being null or empty");
+
             EventRepresentation event = new EventRepresentation();
             event.setType(type);
             event.setText(text);
@@ -122,16 +126,27 @@ public class C8yHttpClient {
             mo.setId(GId.asGId(deviceId));
             event.setSource(mo);
 
-            platform.getEventApi().create(event);
+            EventRepresentation er = platform.getEventApi().create(event);
+            log.debug("Created Event: {}", er);
+            return Optional.of(er);
+        } catch (IllegalArgumentException e) {
+            log.error("Illegal Argument passed to send a platform event. Details: {}", e.getMessage());
         } catch (SDKException e) {
-            log.error("Error while sending an Event to Cumulocity. Details: " + System.lineSeparator() + "%s",
+            log.error("Error while sending an Event to Cumulocity. Details: " + System.lineSeparator() + "{}",
                     C8yApiUtil.createErrorDescription("Error while sending an Alarm to Cumulocity", e));
         }
+        log.debug("Send Event ran in in unexpected state, returning empty Optional");
+        return Optional.empty();
     }
 
     @SafeVarargs
-    public final void sendAlarm(String deviceId, String type, String text, String severity, DateTime time, Pair<String, Object>... fragments) {
+    public final Optional<AlarmRepresentation> sendAlarm(String deviceId, String type, String text, String severity, DateTime time, Pair<String, Object>... fragments) {
         try {
+            Preconditions.checkArgument(StringUtils.isNoneEmpty(deviceId), "Device ID not allowed being null or empty");
+            Preconditions.checkArgument(StringUtils.isNoneEmpty(type), "Type not allowed being null or empty");
+            Preconditions.checkArgument(StringUtils.isNoneEmpty(text), "Text not allowed being null or empty");
+            Preconditions.checkArgument(StringUtils.isNoneEmpty(severity), "Severity not allowed being null or empty");
+
             AlarmRepresentation alarm = new AlarmRepresentation();
             alarm.setType(type);
             alarm.setText(text);
@@ -145,14 +160,22 @@ public class C8yHttpClient {
             mo.setId(GId.asGId(deviceId));
             alarm.setSource(mo);
 
-            platform.getAlarmApi().create(alarm);
+            AlarmRepresentation ar = platform.getAlarmApi().create(alarm);
+            log.debug("Created Alarm: {}", ar);
+            return Optional.of(ar);
+        } catch (IllegalArgumentException e) {
+            log.error("Illegal Argument passed to send a platform event. Details: {}", e.getMessage());
         } catch (SDKException e) {
-            log.error("Error while sending an Alarm to Cumulocity. Details: " + System.lineSeparator() + "%s",
+            log.error("Error while sending an Alarm to Cumulocity. Details: " + System.lineSeparator() + "{}",
                     C8yApiUtil.createErrorDescription("Error while sending an Alarm to Cumulocity", e));
         }
-
+        log.debug("Send Alarm ran in in unexpected state, returning empty Optional");
+        return Optional.empty();
     }
 
+    /**
+     * Method to throw an C8yHttpCallException if platform response is invalid. Returning the input response otherwise.
+     */
     private HttpResponse<String> validatePlatformResponse(URI uri, HttpResponse<String> response) throws C8yHttpCallException {
         if (response == null) {
             throw new C8yHttpCallException("Response is null", uri, this, new NullPointerException());
@@ -164,6 +187,44 @@ public class C8yHttpClient {
             throw new C8yHttpCallException("Response body is null", uri, this, new IllegalStateException("Response body expected to be non-null"));
         }
         return response;
+    }
+
+    public Optional<ManagedObjectRepresentation> bootstrap(String externalIdKey, String externalId, String type, String name) {
+        try {
+            ExternalIDRepresentation xid = platform.getIdentityApi().getExternalId(new ID(externalIdKey, externalId));
+            ManagedObjectRepresentation mo = xid.getManagedObject();
+            log.debug("Found Managed Object for externalIdKey = {} and externalIdValue = {}", externalIdKey, externalId);
+            return Optional.of(mo);
+        } catch (SDKException e) {
+            if (e.getHttpStatus() == 404) {
+                log.debug("Did not find Managed Object for externalIdKey = {} and externalIdValue = {} => Creating it.", externalIdKey, externalId);
+                ManagedObjectRepresentation device = new ManagedObjectRepresentation();
+                device.setType(type);
+                device.setProperty("c8y_IsDevice", new Object());
+                device.setName(name);
+                device = platform.getInventoryApi().create(device);
+                log.debug("Created platform device while bootstrapping device: {}", device);
+
+                ExternalIDRepresentation xid = new ExternalIDRepresentation();
+                xid.setType(externalIdKey);
+                xid.setExternalId(externalId);
+                xid.setManagedObject(device);
+                platform.getIdentityApi().create(xid);
+                log.debug("Created externalID for device {}: {}", device.getId().getValue(), xid);
+
+                return Optional.of(device);
+            }
+        }
+        log.debug("Device Bootstrapping run in an unexpected issue, returning an empty Optional...");
+        return Optional.empty();
+    }
+
+    private String basicAuth(String username, String password) {
+        return "Basic " + Base64.getEncoder().encodeToString((username + ":" + password).getBytes());
+    }
+
+    public String getBasicAuthString() {
+        return basicAuth(credentials.getUsername(), credentials.getPassword());
     }
 
     private Integer getTotalNumberOfPages(String responseBody) throws JSONException, NullPointerException {
@@ -180,39 +241,6 @@ public class C8yHttpClient {
         Preconditions.checkNotNull(number, "fragment 'totalPages' could not be found in statistics for response: " + responseBody);
 
         return number.intValue();
-    }
-
-    public Optional<ManagedObjectRepresentation> bootstrap(String externalIdKey, String externalId, String type, String name) {
-        try {
-            ExternalIDRepresentation xid = platform.getIdentityApi().getExternalId(new ID(externalIdKey, externalId));
-            ManagedObjectRepresentation mo = xid.getManagedObject();
-            return Optional.of(mo);
-        } catch (SDKException e) {
-            if (e.getHttpStatus() == 404) {
-                ManagedObjectRepresentation device = new ManagedObjectRepresentation();
-                device.setType(type);
-                device.setProperty("c8y_IsDevice", new Object());
-                device.setName(name);
-                device = platform.getInventoryApi().create(device);
-
-                ExternalIDRepresentation xid = new ExternalIDRepresentation();
-                xid.setType(externalIdKey);
-                xid.setExternalId(externalId);
-                xid.setManagedObject(device);
-                platform.getIdentityApi().create(xid);
-
-                return Optional.of(device);
-            }
-        }
-        return Optional.empty();
-    }
-
-    private String basicAuth(String username, String password) {
-        return "Basic " + Base64.getEncoder().encodeToString((username + ":" + password).getBytes());
-    }
-
-    public String getBasicAuthString() {
-        return basicAuth(credentials.getUsername(), credentials.getPassword());
     }
 
 
