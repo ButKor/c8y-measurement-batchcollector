@@ -38,7 +38,7 @@ etc.
 
 # Sample Output
 
-Output using a chunk size o 49,999 on a measurement collection of 611,210 Measurements:
+Output using a chunk size of 49,999 on a measurement collection of 611,210 Measurements:
 ```
 *** Measurement Chunk result set ***
  Configuration:                                                
@@ -87,7 +87,7 @@ Chunk Records:
 Note that the chunks seems ~ equally distributed. This is due to the device sending data in a fairly constant frequency.
 
 
-Output using a chunk size o 1000 on a measurement collection of 11.223 Measurements:
+Output using a chunk size of 1,000 on a measurement collection of 11,223 Measurements:
 
 ```
 *** Measurement Chunk result set ***
