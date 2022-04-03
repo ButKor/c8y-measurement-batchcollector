@@ -67,7 +67,7 @@ public class CsvMeasurementsToFileProcessors {
                     isWrittenOnce = true;
                 } catch (C8yHttpCallException e) {
                     log.error("Error occurred while fetching CSV Measurements from Cumulocity " +
-                            "- Runtime will jump ovr this chunk. Error details: " + System.lineSeparator() + "{}", e.prettify());
+                            "- Runtime will jump over this chunk. Error details: " + System.lineSeparator() + "{}", e.prettify());
                 }
             }
             fileWriter.flush();

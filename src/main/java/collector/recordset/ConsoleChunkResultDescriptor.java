@@ -71,7 +71,7 @@ public class ConsoleChunkResultDescriptor {
                 new Pair<>("Date from:", requestConfig.dateFrom()),
                 new Pair<>("Date to:", requestConfig.dateTo()),
                 new Pair<>("Max. chunk size:", numberFormatter.format(requestConfig.chunkSize())),
-                new Pair<>("Device Id:", String.valueOf(requestConfig.source()))
+                new Pair<>("Device Id:", "\"" + String.valueOf(requestConfig.source()) + "\"")
         );
 
         return createVerticalAsciiTable(35, new Pair<>("Configuration:", ""), data);
