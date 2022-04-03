@@ -150,3 +150,11 @@ Chunk Records:
  2022-03-28T10:41:15.001Z              2022-04-01T00:00:00.000Z                                 0 
 ```
 Above sample device is sending less constant data -> that's why there are chunks with 0 elements existing. It's configurable to skip chunks of size 0 automatically.
+
+# Projects Libraries in use
+
+* [Lombok](https://projectlombok.org/): A lib used to reduce boilerplate code for model/data objects
+* [Logback](https://logback.qos.ch/): The SLF4J Logging Library in use
+* [CFG4J](http://www.cfg4j.org/): To configure the application
+* [ctongfei/progressbar](https://github.com/ctongfei/progressbar): A console progressbar Library
+* Other helpers such as Apache-Commons, Guava and Javatuples
