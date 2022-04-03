@@ -5,10 +5,17 @@ platform:
   user: "t12345/myuser"
   pass: "mysupersecretpass"
 
+serviceC8yDevice:
+  activate: false
+  type: "exportService"
+  name: "exportService"
+  externalIdKey: "c8y_Serial"
+  externalIdValue: "exportService"
+
 request:
-  dateFrom: "2021-01-01T00:00:00.000Z"
-  dateTo: "2022-04-01T00:00:00.000Z"
-  source: "100200"
-  chunkSize: 49999
+  dateFrom: "2022-03-21T20:00:00.000Z"
+  dateTo: "2022-03-25T20:00:00.000Z"
+  source: "407401764"
+  chunkSize: 1000
 
 outputFile: "./measurements.csv"

@@ -1,14 +1,21 @@
 # Application Configuration File
 ---
 platform:
-  baseUrl: "https://connect.ttcontrol.cloud"
-  user: "connect/Korbinian.Butz@softwareag.com"
-  pass: "RKvy*_NQ9L3AfAqiX9"
+  baseUrl: "https://kobu.latest.stage.c8y.io"
+  user: "t1304891/korbinian.butz@softwareag.com"
+  pass: "m63e@V*@yHDr_PEJ36"
+
+serviceC8yDevice:
+  activate: false
+  type: "exportService"
+  name: "exportService"
+  externalIdKey: "c8y_Serial"
+  externalIdValue: "exportService"
 
 request:
   dateFrom: "2022-03-21T20:00:00.000Z"
   dateTo: "2022-03-25T20:00:00.000Z"
   source: "407401764"
-  chunkSize: 49999
+  chunkSize: 1000
 
-outputFile: "./measurements2.csv"
+outputFile: "./measurements.csv"

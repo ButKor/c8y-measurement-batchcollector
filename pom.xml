@@ -12,6 +12,20 @@
         <maven.compiler.target>14</maven.compiler.target>
     </properties>
 
+    <repositories>
+        <repository>
+            <id>cumulocity</id>
+            <layout>default</layout>
+            <url>http://download.cumulocity.com/maven/repository</url>
+        </repository>
+    </repositories>
+    <pluginRepositories>
+        <pluginRepository>
+            <id>public</id>
+            <url>http://download.cumulocity.com/maven/repository</url>
+        </pluginRepository>
+    </pluginRepositories>
+
     <dependencies>
         <dependency>
             <groupId>org.apache.commons</groupId>
@@ -67,6 +81,11 @@
             <groupId>io.dropwizard.metrics</groupId>
             <artifactId>metrics-core</artifactId>
             <version>4.2.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.nsn.cumulocity.clients-java</groupId>
+            <artifactId>microservice-autoconfigure</artifactId>
+            <version>1011.0.12</version>
         </dependency>
     </dependencies>
 </project>
