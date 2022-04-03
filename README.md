@@ -38,7 +38,7 @@ etc.
 
 # Sample Output
 
-Output using a chunk size o 100,000 on a measurement collection of 611,210 Measurements:
+Output using a chunk size o 49,999 on a measurement collection of 611,210 Measurements:
 ```
 *** Measurement Chunk result set ***
  Configuration:                                                
