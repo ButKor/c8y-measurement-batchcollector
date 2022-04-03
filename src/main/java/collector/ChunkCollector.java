@@ -4,57 +4,58 @@ import collector.recordset.ChunkResultSet;
 import collector.recordset.MeasurementChunkDescription;
 import collector.util.DateUtil;
 import collector.util.TimeSpan;
+import config.IRequestConfig;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.StopWatch;
 import org.javatuples.Pair;
 
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @AllArgsConstructor
+@Slf4j
 public class ChunkCollector {
 
     private final C8yHttpClient client;
 
-    public Pair<ChunkResultSet, StopWatch> collectWithClock(ChunkCollectorConfig collectorCfg) {
+    public Pair<ChunkResultSet, StopWatch> collectWithClock(IRequestConfig requestConfig) {
         StopWatch watch = StopWatch.createStarted();
-        ChunkResultSet set = collect(collectorCfg);
+        ChunkResultSet set = collect(requestConfig);
         watch.stop();
         return new Pair<>(set, watch);
     }
 
-    public ChunkResultSet collect(ChunkCollectorConfig collectorCfg) {
-        ChunkResultSet resultSet = new ChunkResultSet(collectorCfg);
+    public ChunkResultSet collect(IRequestConfig requestConfig) {
+        ChunkResultSet resultSet = new ChunkResultSet(requestConfig);
         resultSet.registerRunStart(Instant.now());
+        TimeSpan ts = new TimeSpan(DateUtil.getDateTime(requestConfig.dateFrom()), DateUtil.getDateTime(requestConfig.dateTo()));
         resultSet.addMeasurementChunkDescriptions(
-                collectChunks(collectorCfg.getDateFrom(), collectorCfg.getDateTo(), collectorCfg.getOid(), collectorCfg.getChunkSize(), resultSet)
+                collectChunks(ts, requestConfig.source(), requestConfig.chunkSize(), resultSet)
         );
         resultSet.registerRunFinish(Instant.now());
         return resultSet;
     }
 
-    private List<MeasurementChunkDescription> collectChunks(Instant dateFrom, Instant dateTo, String oid, int chunkSize, ChunkResultSet resultSet) {
+    private List<MeasurementChunkDescription> collectChunks(TimeSpan ts, String sourceId, int maxChunkSize, ChunkResultSet resultSet) {
         List<MeasurementChunkDescription> lst = new ArrayList<>();
-        Optional<Integer> countElements = client.fetchNumberOfMeasurements(DateUtil.getFormattedUtcString(dateFrom), DateUtil.getFormattedUtcString(dateTo), oid);
+        try {
+            int ctElements = client.fetchNumberOfMeasurements(DateUtil.getFormattedUtcString(ts.getDateFrom()), DateUtil.getFormattedUtcString(ts.getDateTo()), sourceId);
 
-        if (countElements.isEmpty()) {
-            // if no measurements are found its '0', if its empty => exception (you might want to catch it already earlier...)
+            MeasurementChunkDescription d = new MeasurementChunkDescription(ts, ctElements);
+            if (ctElements > maxChunkSize) {
+                Pair<TimeSpan, TimeSpan> timeTuple = DateUtil.divideTimesByTwo(ts);
+                lst.addAll(collectChunks(new TimeSpan(timeTuple.getValue0().getDateFrom(), timeTuple.getValue0().getDateTo()), sourceId, maxChunkSize, resultSet));
+                lst.addAll(collectChunks(new TimeSpan(timeTuple.getValue1().getDateFrom(), timeTuple.getValue1().getDateTo()), sourceId, maxChunkSize, resultSet));
+                resultSet.registerDataSplitAction();
+            } else {
+                lst.add(d);
+            }
+        } catch (C8yHttpCallException e) {
+            log.error("Critical error while collecting Chunks occurred. Error details: \n{}", e.prettify());
+            return new ArrayList<>();
         }
-
-        int ctElements = countElements.get();
-        MeasurementChunkDescription d = new MeasurementChunkDescription(new TimeSpan(dateFrom, dateTo), ctElements);
-
-        if (ctElements > chunkSize) {
-            Pair<TimeSpan, TimeSpan> timeTuple = DateUtil.divideTimesByTwo(dateFrom, dateTo);
-            lst.addAll(collectChunks(timeTuple.getValue0().getDateFrom(), timeTuple.getValue0().getDateTo(), oid, chunkSize, resultSet));
-            lst.addAll(collectChunks(timeTuple.getValue1().getDateFrom(), timeTuple.getValue1().getDateTo(), oid, chunkSize, resultSet));
-            resultSet.registerDataSplitAction();
-        } else {
-            lst.add(d);
-        }
-
         return lst;
     }
 

@@ -1,0 +1,14 @@
+# Application Configuration File
+---
+platform:
+  baseUrl: "https://kobu.latest.stage.c8y.io"
+  user: "t1304891/korbinian.butz@softwareag.com"
+  pass: "m63e@V*@yHDr_PEJ36"
+
+request:
+  dateFrom: "2021-01-01T00:00:00.000Z"
+  dateTo: "2022-04-01T00:00:00.000Z"
+  source: "100200"
+  chunkSize: 1000
+
+outputFile: "./measurements2.csv"

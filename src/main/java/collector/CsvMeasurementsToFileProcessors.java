@@ -3,24 +3,34 @@ package collector;
 import collector.recordset.ChunkResultSet;
 import collector.recordset.MeasurementChunkDescription;
 import collector.util.DateUtil;
+import lombok.extern.slf4j.Slf4j;
+import me.tongfei.progressbar.DelegatingProgressBarConsumer;
+import me.tongfei.progressbar.ProgressBar;
+import me.tongfei.progressbar.ProgressBarBuilder;
+import me.tongfei.progressbar.ProgressBarStyle;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.lang3.time.StopWatch;
 import org.javatuples.Pair;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.FileWriter;
 import java.io.IOException;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
-import java.util.Optional;
 
+@Slf4j
 public class CsvMeasurementsToFileProcessors {
 
+    final Logger logger = LoggerFactory.getLogger("test");
     private final C8yHttpClient client;
 
     public CsvMeasurementsToFileProcessors(C8yHttpClient client) {
         this.client = client;
     }
 
-    public Pair<Boolean, StopWatch> runWithClock(ChunkResultSet resultSet, String fileName){
+    public Pair<Boolean, StopWatch> runWithClock(ChunkResultSet resultSet, String fileName) {
         StopWatch watch = StopWatch.createStarted();
         Boolean success = run(resultSet, fileName);
         watch.stop();
@@ -28,40 +38,58 @@ public class CsvMeasurementsToFileProcessors {
     }
 
     public boolean run(ChunkResultSet chunkResultSet, String fileName) {
-        FileWriter fileWriter = null;
-        try {
-            fileWriter = new FileWriter(fileName);
+        try (FileWriter fileWriter = new FileWriter(fileName)) {
+            ProgressBar pb = createProgressBar(chunkResultSet.getRecords().size());
             List<MeasurementChunkDescription> chunks = chunkResultSet.getRecords();
             boolean isWrittenOnce = false;
             for (MeasurementChunkDescription c : chunks) {
-                if (c.getCountMeasurements() == null || c.getCountMeasurements() == 0) {
-                    continue;
+                try {
+                    pb.step();
+                    if (c.getCountMeasurements() == null || c.getCountMeasurements() == 0) {
+                        continue;
+                    }
+
+                    String dateFrom = DateUtil.getFormattedUtcString(c.getTimespan().getDateFrom());
+                    String dateTo = DateUtil.getFormattedUtcString(c.getTimespan().getDateTo());
+                    String deviceId = chunkResultSet.getRequestConfig().source();
+
+                    String meas = client.fetchCsvMeasurements(dateFrom, dateTo, deviceId).orElse(StringUtils.EMPTY);
+                    if (StringUtils.isEmpty(meas)) {
+                        continue;
+                    }
+
+                    // remove header for every record except the first written record
+                    if (isWrittenOnce) {
+                        meas = meas.substring(meas.indexOf("\n") + 2);
+                    }
+
+                    fileWriter.append(meas).append(System.lineSeparator());
+                    isWrittenOnce = true;
+                } catch (C8yHttpCallException e) {
+                    log.error("Error occurred while fetching CSV Measurements from Cumulocity " +
+                            "- Runtime will jump ovr this chunk. Error details: " + System.lineSeparator() + "{}", e.prettify());
                 }
-
-                String dateFrom = DateUtil.getFormattedUtcString(c.getTimespan().getDateFrom());
-                String dateTo = DateUtil.getFormattedUtcString(c.getTimespan().getDateTo());
-                String deviceId = chunkResultSet.getCollectorCfg().getOid();
-
-                Optional<String> measurementBlock = client.fetchCsvMeasurements(dateFrom, dateTo, deviceId);
-                String meas = measurementBlock.orElse(StringUtils.EMPTY);
-                if (StringUtils.isEmpty(meas)) {
-                    continue;
-                }
-
-                // remove header for every set except the first written set
-                if (isWrittenOnce) {
-                    meas = meas.substring(meas.indexOf("\n") + 2);
-                }
-
-                fileWriter.append(meas).append(System.lineSeparator());
-                isWrittenOnce = true;
             }
             fileWriter.flush();
             return true;
         } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
+            log.error("IO Exception while writing CSV. Error details:" + System.lineSeparator()
+                            + "Error Message: {}" + System.lineSeparator()
+                            + "Error Stacktrace: {}",
+                    e.getMessage(),
+                    ExceptionUtils.getStackTrace(e));
         }
         return false;
+    }
+
+    private ProgressBar createProgressBar(int maxSize) {
+        return new ProgressBarBuilder()
+                .setInitialMax(maxSize)
+                .setStyle(ProgressBarStyle.ASCII)
+                .setSpeedUnit(ChronoUnit.SECONDS)
+                .setTaskName("Fetch and export Measurement chunks")
+                .setConsumer(new DelegatingProgressBarConsumer(logger::info, 120))
+                .setUpdateIntervalMillis(200)
+                .build();
     }
 }

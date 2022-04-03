@@ -1,0 +1,14 @@
+# Application Configuration File
+---
+platform:
+  baseUrl: "https://example.cumulocity.com"
+  user: "t12345/myuser"
+  pass: "mysupersecretpass"
+
+request:
+  dateFrom: "2021-01-01T00:00:00.000Z"
+  dateTo: "2022-04-01T00:00:00.000Z"
+  source: "100200"
+  chunkSize: 40000
+
+outputFile: "./measurements.csv"
