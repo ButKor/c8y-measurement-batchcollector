@@ -1,10 +1,10 @@
 # Application Configuration File
 ---
 platform:
-  baseUrl: "https://example.cumulocity.com"
-  user: "t12345/myuser"
-  pass: "mysupersecretpass"
-serviceC8yDevice:  # Service is represented by a device to monitor its runtime
+  baseUrl: "https://kobu.latest.stage.c8y.io"
+  user: "t1304891/korbinian.butz@softwareag.com"
+  pass: "m63e@V*@yHDr_PEJ36"
+serviceC8yDevice:  # BETA
   activate: true
   type: exportService
   name: exportService

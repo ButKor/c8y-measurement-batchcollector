@@ -3,9 +3,9 @@
 platform:
   baseUrl: "https://example.cumulocity.com"
   user: "t12345/myuser"
-  pass: "mysupersecretpass"
-serviceC8yDevice:  # Service is represented by a device to monitor its runtime
-  activate: true
+  pass: "mysecretpass"
+serviceC8yDevice:  # Service is represented as Cumulocity Device holding events/alarms for auditing
+  activate: false
   type: exportService
   name: exportService
   externalIdKey: c8y_Serial
